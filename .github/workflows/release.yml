@@ -1,0 +1,33 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  mcpb:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Pack MCP bundle
+        run: npx @anthropic-ai/mcpb pack . minimax-mcp-server.mcpb
+
+      - name: Upload to release
+        run: gh release upload "$GITHUB_REF_NAME" minimax-mcp-server.mcpb --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

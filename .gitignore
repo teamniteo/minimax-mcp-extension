@@ -1,0 +1,9 @@
+node_modules/
+build/
+build-tsc/
+*.mcpb
+*.dxt
+config.toml
+.env
+.DS_Store
+.cachebro/

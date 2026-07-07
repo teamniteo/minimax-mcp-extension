@@ -1,0 +1,152 @@
+{
+  "manifest_version": "0.3",
+  "name": "minimax-mcp-server",
+  "display_name": "Minimax (SI) Accounting MCP",
+  "version": "1.4.1",
+  "description": "Connect Claude to the Minimax Slovenian accounting API (moj.minimax.si) to read and create organizations' customers, items, and invoices, and issue invoices with PDF output.",
+  "long_description": "A Model Context Protocol server for the Minimax Slovenian accounting/ERP API (moj.minimax.si).\n\n**Read:**\n- List organizations and organization details\n- List customers and items\n- List issued and received invoices (filter by year/status/customer)\n- Look up VAT rates, currencies and countries\n- Fetch report templates and analytics\n- Read received-invoice attachments\n\n**Create & act:**\n- Create customers and items\n- Create issued invoices (draft or issued) and received (supplier) invoices\n- Issue an invoice and generate its PDF, plus other custom actions (credit note, cancellation, e-invoice)\n- Upload received-invoice attachments\n- New-resource IDs are returned directly from the Location header (no follow-up lookup needed)\n\n**Authentication:**\n- OAuth2 password grant against moj.minimax.si\n- Client credentials (Developer ID + password) plus organization credentials\n- Automatic token caching with refresh before expiry\n\nPackaged as a portable desktop extension that installs into Claude Desktop with two clicks and no manual JSON editing.",
+  "author": {
+    "name": "dz0ny",
+    "url": "https://github.com/dz0ny"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/teamniteo/minimax-mcp-extension"
+  },
+  "documentation": "https://moj.minimax.si/SI/API/Help",
+  "icon": "icon.png",
+  "screenshots": [],
+  "server": {
+    "type": "node",
+    "entry_point": "build/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/build/index.js"
+      ],
+      "env": {
+        "MINIMAX_DEVELOPER_ID": "${user_config.developer_id}",
+        "MINIMAX_DEVELOPER_PASSWORD": "${user_config.developer_password}",
+        "MINIMAX_ORG_ID": "${user_config.org_id}",
+        "MINIMAX_ORG_PASSWORD": "${user_config.org_password}",
+        "MINIMAX_BASE_URL": "${user_config.base_url}",
+        "MINIMAX_TOKEN_URL": "${user_config.token_url}",
+        "MINIMAX_SCOPE": "${user_config.scope}"
+      }
+    }
+  },
+  "user_config": {
+    "developer_id": {
+      "type": "string",
+      "title": "Developer ID (client_id)",
+      "description": "Your Minimax Developer/App ID used as the OAuth2 client_id.",
+      "sensitive": true,
+      "required": true
+    },
+    "developer_password": {
+      "type": "string",
+      "title": "Developer Password (client_secret)",
+      "description": "Your Minimax Developer/App password used as the OAuth2 client_secret.",
+      "sensitive": true,
+      "required": true
+    },
+    "org_id": {
+      "type": "string",
+      "title": "Organization Username",
+      "description": "The API username you defined in your Minimax user account (OAuth2 username).",
+      "sensitive": true,
+      "required": true
+    },
+    "org_password": {
+      "type": "string",
+      "title": "Organization Password",
+      "description": "The API password you defined in your Minimax user account (OAuth2 password).",
+      "sensitive": true,
+      "required": true
+    },
+    "base_url": {
+      "type": "string",
+      "title": "API Base URL",
+      "description": "Minimax API base URL.",
+      "default": "https://moj.minimax.si/SI/API/",
+      "required": false
+    },
+    "token_url": {
+      "type": "string",
+      "title": "OAuth2 Token URL",
+      "description": "Minimax OAuth2 token endpoint.",
+      "default": "https://moj.minimax.si/si/aut/oauth20/token",
+      "required": false
+    },
+    "scope": {
+      "type": "string",
+      "title": "OAuth2 Scope",
+      "description": "OAuth2 scope requested from Minimax.",
+      "default": "minimax.si",
+      "required": false
+    }
+  },
+  "tools": [
+    { "name": "list_organizations", "description": "List all organizations for the current user" },
+    { "name": "get_organization", "description": "Get organization details by ID" },
+    { "name": "list_customers", "description": "List customers for an organization (paged)" },
+    { "name": "list_items", "description": "List items for an organization (paged)" },
+    { "name": "list_issued_invoices", "description": "List issued invoices for an organization (filter by year/status)" },
+    { "name": "list_received_invoices", "description": "List received invoices for an organization (filter by year/statuses/customer)" },
+    { "name": "get_vatrates", "description": "Get VAT rates for an organization (optionally by code and date)" },
+    { "name": "get_currency_by_code", "description": "Get currency details by currency code" },
+    { "name": "get_country_by_code", "description": "Get country details by country code" },
+    { "name": "get_report_templates", "description": "Get report templates for an organization" },
+    { "name": "get_analytics", "description": "Get analytics data for an organization" },
+    { "name": "get_received_invoice_attachments", "description": "List attachments for a received invoice" },
+    { "name": "add_received_invoice_attachment", "description": "Upload a base64 attachment to a received invoice" },
+    { "name": "create_issued_invoice", "description": "Create a new issued invoice (draft or issued)" },
+    { "name": "create_received_invoice", "description": "Create a new received (supplier) invoice" },
+    { "name": "perform_issued_invoice_action", "description": "Issue an invoice and/or generate its PDF (and other custom actions)" },
+    { "name": "create_customer", "description": "Create a new customer (buyer or supplier)" },
+    { "name": "create_item", "description": "Create a new item (product or service)" }
+  ],
+  "prompts": [
+    {
+      "name": "create-invoice-workflow",
+      "description": "Complete workflow to create, issue and generate a PDF for an invoice",
+      "text": "Guide me through creating, issuing and generating a PDF for a Minimax invoice: 1) list_organizations, 2) fetch lookup data (get_vatrates, get_currency_by_code, get_country_by_code, get_report_templates), 3) create the item and customer, 4) create the issued invoice, 5) issue and generate the PDF, 6) extract the base64 PDF from the response."
+    },
+    {
+      "name": "revenue-summary",
+      "description": "Summarise issued invoices for an organization and year with totals by customer and status",
+      "text": "Summarise issued invoices for an organization (and optionally a year): 1) list_organizations to find the organisationId, 2) list_issued_invoices with pageSize 100 and page through all results, 3) sum InvoiceValue for the grand total and break it down by year, by customer and by PaymentStatus (Placan = paid), 4) present a compact table with totals and flag anything unpaid or overdue."
+    },
+    {
+      "name": "customer-invoice-history",
+      "description": "Find a customer and list their issued invoices with a paid/unpaid breakdown",
+      "text": "Show a customer's invoice history: 1) list_organizations to find the organisationId, 2) list_customers (page through) to find the customer and note its CustomerId, 3) list_issued_invoices (pageSize 100, all pages) keeping rows whose Customer.ID matches, 4) list them with date, number, amount and PaymentStatus and summarise total billed vs. outstanding."
+    },
+    {
+      "name": "recurring-monthly-invoice",
+      "description": "Create and issue this month's recurring invoice for a customer, then generate the PDF",
+      "text": "Create and issue this month's recurring invoice: 1) list_organizations, 2) list_customers for the customer, 3) list_items for the item, get_vatrates (code 'S' = 22%) and get_report_templates (IR), 4) create_issued_invoice with Customer, DateIssued today, due date ~14 days out, Currency EUR, PricesOnInvoice 'N', Status 'O', the IR report template and one IssuedInvoiceRow (ItemName, Quantity, Price, VatRate 22%); note the Created ID and RowVersion, 5) confirm with me, then perform_issued_invoice_action with actionName 'issueAndGeneratepdf' and the RowVersion to issue it and return the PDF."
+    },
+    {
+      "name": "enter-received-invoice",
+      "description": "Record a supplier (received) invoice against an existing supplier",
+      "text": "Record a received (supplier) invoice: 1) list_organizations, 2) list_customers for the supplier (create_customer if it does not exist), 3) create_received_invoice with Customer, DateIssued, DateReceived, DateDue, Currency EUR, InvoiceAmount, DocumentReference (supplier's number) and Status 'O' (draft) or 'P' (confirmed), 4) report the Created ID and confirm."
+    },
+    {
+      "name": "unpaid-invoices",
+      "description": "List unpaid and overdue issued invoices for an organization",
+      "text": "List unpaid and overdue issued invoices: 1) list_organizations, 2) list_issued_invoices (pageSize 100, all pages), 3) keep rows whose PaymentStatus starts with 'Neplacan' (unpaid) or 'DelnoPlacan' (partially paid) and flag '...Zapadel' as overdue, 4) show them sorted by due date with customer, amount, due date and days overdue, plus the total outstanding."
+    }
+  ],
+  "keywords": [
+    "minimax",
+    "minimax.si",
+    "slovenia",
+    "accounting",
+    "invoices",
+    "erp",
+    "mcp",
+    "oauth2"
+  ],
+  "license": "MIT"
+}
