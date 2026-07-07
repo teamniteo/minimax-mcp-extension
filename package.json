@@ -1,0 +1,36 @@
+{
+  "name": "minimax-mcp-server",
+  "version": "1.4.1",
+  "description": "MCP server for the Minimax Slovenian accounting API (moj.minimax.si)",
+  "type": "module",
+  "bin": {
+    "minimax-mcp-server": "build/index.js"
+  },
+  "files": [
+    "build",
+    "manifest.json"
+  ],
+  "scripts": {
+    "build": "tsc && node esbuild.config.mjs",
+    "bundle": "node esbuild.config.mjs",
+    "start": "node build/index.js"
+  },
+  "keywords": [
+    "minimax",
+    "mcp",
+    "slovenia",
+    "accounting",
+    "invoices"
+  ],
+  "author": "dz0ny",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.3",
+    "@types/node": "^22.9.0"
+  }
+}
