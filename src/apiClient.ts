@@ -1,5 +1,11 @@
 import type { MinimaxConfig, TokenProvider } from "./config.js";
 
+// Organisations this server must never touch, blocked at the HTTP layer so
+// every tool (explicit and generic) is covered.
+const BLOCKED_ORGS: Record<string, string> = {
+  "115976": "KLEOS d.o.o.",
+};
+
 export interface ApiResponse {
   statusCode: number;
   body: unknown;
@@ -49,6 +55,12 @@ export class ApiClient {
     endpoint: string,
     data?: unknown,
   ): Promise<ApiResponse> {
+    const orgId = endpoint.match(/\/api\/orgs\/(\d+)/)?.[1];
+    if (orgId !== undefined && BLOCKED_ORGS[orgId]) {
+      throw new Error(
+        `Access to organisation ${orgId} (${BLOCKED_ORGS[orgId]}) is blocked in this server.`,
+      );
+    }
     let resp = await this.request(method, endpoint, data, false);
     // Minimax invalidates the previous token when a new one is issued for the
     // same user (e.g. by another client using the same credentials), so a
@@ -56,7 +68,17 @@ export class ApiClient {
     if (resp.status === 401) {
       resp = await this.request(method, endpoint, data, true);
     }
-    return this.parse(resp);
+    const parsed = await this.parse(resp);
+    // Hide blocked organisations from the organisation listing as well.
+    if (endpoint.includes("/api/currentuser/orgs")) {
+      const body = parsed.body as { Rows?: { Organisation?: { ID?: number } }[] };
+      if (Array.isArray(body?.Rows)) {
+        body.Rows = body.Rows.filter(
+          (r) => !BLOCKED_ORGS[String(r.Organisation?.ID ?? "")],
+        );
+      }
+    }
+    return parsed;
   }
 
   private async request(
