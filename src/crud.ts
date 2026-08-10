@@ -100,9 +100,9 @@ const RESOURCES: Record<string, ResourceDef> = {
   },
   inbox: {
     path: "inbox",
-    ops: ["list", "get"],
+    ops: ["list", "get", "create"],
     description:
-      "Inbox / received e-documents (filters: InboxType, InboxImportStatus, InboxDateFrom/To)",
+      "Inbox / received e-documents (filters: InboxType, InboxImportStatus, InboxDateFrom/To). Create with InboxType 'PR' (received invoice), 'IZP' (bank statement) or 'Ostalo', then upload the file with minimax_add_attachment and process it with minimax_action approve",
   },
   issuedInvoicePostings: {
     path: "issuedinvoicepostings",
