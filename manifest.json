@@ -104,6 +104,8 @@
     { "name": "create_received_invoice", "description": "Create a new received (supplier) invoice" },
     { "name": "perform_issued_invoice_action", "description": "Issue an invoice and/or generate its PDF (and other custom actions)" },
     { "name": "create_customer", "description": "Create a new customer (buyer or supplier)" },
+    { "name": "add_customer_by_tax_number", "description": "Create a customer from a tax number via the business registry" },
+    { "name": "minimax_action", "description": "Perform a custom action on an order, stock entry, inbox document or invoice posting (confirm, approve, issue, PDF, ...)" },
     { "name": "create_item", "description": "Create a new item (product or service)" },
     { "name": "get_current_user_profile", "description": "Get the profile of the current API user" },
     { "name": "minimax_list", "description": "List records of any Minimax resource (customers, items, invoices, orders, journals, documents, employees, stock, ...)" },

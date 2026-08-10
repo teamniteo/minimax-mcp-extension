@@ -428,11 +428,9 @@ export function registerTools(server: McpServer, api: ApiClient): void {
         .describe("Optional reason, only used with the issueCancellation action"),
     },
     guard(async ({ organisationId, issuedInvoiceId, actionName, rowVersion, issueCancellationReason }) => {
-      const segment = `${actionName}_${encodeURIComponent(rowVersion as string)}`;
-      let endpoint = `/api/orgs/${organisationId}/issuedinvoices/${issuedInvoiceId}/actions/${segment}`;
-      if (issueCancellationReason) {
-        endpoint += query({ issueCancellationReason });
-      }
+      const endpoint =
+        `/api/orgs/${organisationId}/issuedinvoices/${issuedInvoiceId}/actions/${actionName}` +
+        query({ rowVersion, issueCancellationReason });
       return ok("Issued invoice action result", await api.callApi("PUT", endpoint));
     }),
   );
@@ -469,6 +467,24 @@ export function registerTools(server: McpServer, api: ApiClient): void {
       ok(
         "Customer created",
         await api.callApi("POST", `/api/orgs/${organisationId}/customers`, customer),
+      ),
+    ),
+  );
+
+  server.tool(
+    "add_customer_by_tax_number",
+    `Create a new customer from just a tax number; Minimax fills in the company data from the business registry. API docs: ${DOCS}/POST-api-orgs-organisationId-customers-addbytaxnumber(taxNumber)`,
+    {
+      organisationId: z.string().describe("The organization ID"),
+      taxNumber: z.string().describe("The customer's tax number (davčna številka), e.g. 12345678 or SI12345678"),
+    },
+    guard(async ({ organisationId, taxNumber }) =>
+      ok(
+        "Customer created from tax number",
+        await api.callApi(
+          "POST",
+          `/api/orgs/${organisationId}/customers/addbytaxnumber(${encodeURIComponent(taxNumber as string)})`,
+        ),
       ),
     ),
   );

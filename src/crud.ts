@@ -257,6 +257,57 @@ const ATTACHMENTS: Record<string, AttachmentDef> = {
   },
 };
 
+interface ActionDef {
+  /** Record collection path under /api/orgs/{organisationId}/. */
+  path: string;
+  /** Actions performed via PUT. */
+  actions: readonly string[];
+  /** Actions performed via GET (e.g. PDF downloads). */
+  getActions?: readonly string[];
+  /** Whether the endpoint requires the record's RowVersion (query param). */
+  rowVersion: boolean;
+  /** Extra query params some actions accept. */
+  extraParams?: string;
+}
+
+/**
+ * Resources with custom-action endpoints. Issued invoices are handled by the
+ * dedicated perform_issued_invoice_action tool.
+ */
+const ACTIONS: Record<string, ActionDef> = {
+  inbox: {
+    path: "inbox",
+    actions: ["approve", "reject", "createReceivedInvoice"],
+    rowVersion: false,
+    extraParams: "approvalReason (approve), rejectionReason (reject)",
+  },
+  issuedInvoicePostings: {
+    path: "issuedinvoicepostings",
+    actions: ["issue", "issueCancellation"],
+    rowVersion: false,
+  },
+  orders: {
+    path: "orders",
+    actions: [
+      "confirm",
+      "cancelConfirmation",
+      "complete",
+      "cancelCompletion",
+      "invalidate",
+      "cancelInvalidation",
+      "createissuedinvoice",
+      "generatepdf",
+    ],
+    getActions: ["getorderpdf"],
+    rowVersion: true,
+  },
+  stockEntries: {
+    path: "stockentry",
+    actions: ["confirm", "cancelConfirmation"],
+    rowVersion: true,
+  },
+};
+
 const resourceNames = Object.keys(RESOURCES) as [string, ...string[]];
 
 const resourceParam = z
@@ -666,6 +717,56 @@ export function registerCrudTools(server: McpServer, api: ApiClient): void {
         ),
       ),
     ),
+  );
+
+  const actionNames = Object.keys(ACTIONS) as [string, ...string[]];
+
+  const actionCatalog = Object.entries(ACTIONS)
+    .map(([name, def]) => {
+      const all = [...def.actions, ...(def.getActions ?? [])];
+      const extra = def.extraParams ? `; params: ${def.extraParams}` : "";
+      const rv = def.rowVersion ? "; requires rowVersion" : "";
+      return `${name}: ${all.join(", ")}${rv}${extra}`;
+    })
+    .join(" | ");
+
+  server.tool(
+    "minimax_action",
+    `Perform a custom action on a record (confirm/complete/invalidate an order, confirm a stock entry, approve/reject an inbox document or turn it into a received invoice, issue an invoice posting, generate PDFs). Where rowVersion is required it comes from the record's RowVersion field (fetch with minimax_get). Actions per resource: ${actionCatalog}. For issued invoices use perform_issued_invoice_action.`,
+    {
+      resource: z.enum(actionNames).describe("The resource to act on"),
+      organisationId: z.string().describe("The organization ID"),
+      id: z.string().describe("Record ID"),
+      actionName: z.string().describe("The action to perform (see tool description)"),
+      rowVersion: z
+        .string()
+        .optional()
+        .describe("RowVersion concurrency token (required for orders and stockEntries)"),
+      params: z
+        .record(z.union([z.string(), z.number()]))
+        .optional()
+        .describe("Extra query parameters, e.g. { rejectionReason: '...' }"),
+    },
+    guard(async ({ resource, organisationId, id, actionName, rowVersion, params }) => {
+      const def = ACTIONS[resource as string];
+      const action = actionName as string;
+      const isGet = def.getActions?.includes(action) ?? false;
+      if (!isGet && !def.actions.includes(action)) {
+        return fail(
+          `Unknown action '${action}' for '${String(resource)}'. Available: ${[...def.actions, ...(def.getActions ?? [])].join(", ")}.`,
+        );
+      }
+      if (def.rowVersion && !rowVersion) {
+        return fail(`Action '${action}' on '${String(resource)}' requires rowVersion.`);
+      }
+      const endpoint =
+        `/api/orgs/${organisationId}/${def.path}/${encodeURIComponent(id as string)}/actions/${encodeURIComponent(action)}` +
+        query({ rowVersion, ...(params as Record<string, unknown> | undefined) });
+      return ok(
+        `${String(resource)} action result`,
+        await api.callApi(isGet ? "GET" : "PUT", endpoint),
+      );
+    }),
   );
 
   server.tool(

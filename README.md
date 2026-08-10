@@ -28,6 +28,7 @@ Tools (read + attachment upload):
 | `create_received_invoice` | `POST /api/orgs/{id}/receivedinvoices` |
 | `perform_issued_invoice_action` | `PUT .../issuedinvoices/{id}/actions/{action}_{rowVersion}` |
 | `create_customer` | `POST /api/orgs/{id}/customers` |
+| `add_customer_by_tax_number` | `POST /api/orgs/{id}/customers/addbytaxnumber(TAX)` |
 | `create_item` | `POST /api/orgs/{id}/items` |
 | `get_current_user_profile` | `GET /api/currentuser/profile` |
 
@@ -46,6 +47,19 @@ warehouses):
 | `minimax_create` | `POST /api/orgs/{id}/{resource}` |
 | `minimax_update` | `PUT /api/orgs/{id}/{resource}/{recordId}` |
 | `minimax_delete` | `DELETE /api/orgs/{id}/{resource}/{recordId}` |
+
+`minimax_action` performs custom actions on records
+(`PUT/GET .../{resource}/{recordId}/actions/{action}?rowVersion=...`):
+
+| Resource | Actions |
+|----------|---------|
+| `orders` | `confirm`, `cancelConfirmation`, `complete`, `cancelCompletion`, `invalidate`, `cancelInvalidation`, `createissuedinvoice`, `generatepdf`, `getorderpdf` |
+| `stockEntries` | `confirm`, `cancelConfirmation` |
+| `inbox` | `approve`, `reject`, `createReceivedInvoice` |
+| `issuedInvoicePostings` | `issue`, `issueCancellation` |
+
+Issued-invoice actions (`issue`, `issueAndGeneratepdf`, ...) stay on the
+dedicated `perform_issued_invoice_action` tool.
 
 Attachment tools (uploads are JSON with base64 `AttachmentData`):
 
