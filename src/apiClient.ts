@@ -43,13 +43,29 @@ export class ApiClient {
     return { statusCode: resp.status, body, location, createdId };
   }
 
-  /** Perform a JSON API call (GET/POST/PATCH/DELETE). */
+  /** Perform a JSON API call (GET/POST/PUT/DELETE). */
   async callApi(
     method: string,
     endpoint: string,
     data?: unknown,
   ): Promise<ApiResponse> {
-    const token = await this.tokens.getToken();
+    let resp = await this.request(method, endpoint, data, false);
+    // Minimax invalidates the previous token when a new one is issued for the
+    // same user (e.g. by another client using the same credentials), so a
+    // cached token can die before its expiry. Re-authenticate once and retry.
+    if (resp.status === 401) {
+      resp = await this.request(method, endpoint, data, true);
+    }
+    return this.parse(resp);
+  }
+
+  private async request(
+    method: string,
+    endpoint: string,
+    data: unknown,
+    forceRefresh: boolean,
+  ): Promise<Response> {
+    const token = await this.tokens.getToken(forceRefresh);
     const headers: Record<string, string> = {
       Authorization: `Bearer ${token}`,
     };
@@ -58,12 +74,6 @@ export class ApiClient {
       headers["Content-Type"] = "application/json";
       payload = JSON.stringify(data);
     }
-
-    const resp = await fetch(this.buildUrl(endpoint), {
-      method,
-      headers,
-      body: payload,
-    });
-    return this.parse(resp);
+    return fetch(this.buildUrl(endpoint), { method, headers, body: payload });
   }
 }
