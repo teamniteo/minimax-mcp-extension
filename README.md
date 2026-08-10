@@ -47,6 +47,16 @@ warehouses):
 | `minimax_update` | `PUT /api/orgs/{id}/{resource}/{recordId}` |
 | `minimax_delete` | `DELETE /api/orgs/{id}/{resource}/{recordId}` |
 
+Attachment tools (uploads are JSON with base64 `AttachmentData`):
+
+| Tool | Resources |
+|------|-----------|
+| `minimax_list_attachments` | `issuedInvoices`, `receivedInvoices` |
+| `minimax_get_attachment` | `documents` (returns base64 data) |
+| `minimax_add_attachment` | `documents`, `inbox`, `issuedInvoices`, `receivedInvoices` |
+| `minimax_update_attachment` | `documents` |
+| `minimax_delete_attachment` | `documents`, `inbox` |
+
 Each generic tool takes a `resource` name (e.g. `customers`, `orders`,
 `journals`); nested resources (customer `addresses`, `bankAccounts`,
 `contacts`, journal `journalVats`) also take a `parentId`. Updates require the

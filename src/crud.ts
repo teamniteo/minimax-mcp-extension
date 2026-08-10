@@ -209,6 +209,54 @@ const RESOURCES: Record<string, ResourceDef> = {
   },
 };
 
+type AttachmentOp = "list" | "get" | "add" | "update" | "delete";
+
+interface AttachmentDef {
+  /** Attachment collection path under /api/orgs/{organisationId}/. */
+  path: string;
+  /** Override path for the add operation (inbox posts to the record itself). */
+  addPath?: string;
+  /** What {parentId} refers to. */
+  parent: string;
+  ops: readonly AttachmentOp[];
+  /**
+   * JSON body shape for uploads:
+   *  - "attachment": { AttachmentData, AttachmentFileName, AttachmentMimeType }
+   *  - "documentAttachment": { AttachmentData, FileName, MimeType, Description }
+   *  - "attachmentList": array of "attachment" objects (inbox)
+   */
+  body: "attachment" | "documentAttachment" | "attachmentList";
+}
+
+/** Resources with attachment endpoints. Uploads are JSON with base64 data. */
+const ATTACHMENTS: Record<string, AttachmentDef> = {
+  documents: {
+    path: "documents/{parentId}/attachments",
+    parent: "document ID",
+    ops: ["get", "add", "update", "delete"],
+    body: "documentAttachment",
+  },
+  inbox: {
+    path: "inbox/{parentId}/attachments",
+    addPath: "inbox/{parentId}",
+    parent: "inbox record ID",
+    ops: ["add", "delete"],
+    body: "attachmentList",
+  },
+  issuedInvoices: {
+    path: "issuedinvoices/{parentId}/attachments",
+    parent: "issued invoice ID",
+    ops: ["list", "add"],
+    body: "attachment",
+  },
+  receivedInvoices: {
+    path: "receivedinvoices/{parentId}/attachments",
+    parent: "received invoice ID",
+    ops: ["list", "add"],
+    body: "attachment",
+  },
+};
+
 const resourceNames = Object.keys(RESOURCES) as [string, ...string[]];
 
 const resourceParam = z
@@ -464,6 +512,157 @@ export function registerCrudTools(server: McpServer, api: ApiClient): void {
             parentId as string | undefined,
             "delete",
           )}/${encodeURIComponent(id as string)}`,
+        ),
+      ),
+    ),
+  );
+
+  const attachmentNames = Object.keys(ATTACHMENTS) as [string, ...string[]];
+
+  const attachmentResourceParam = z
+    .enum(attachmentNames)
+    .describe("The resource whose attachments to operate on");
+
+  const attachmentCatalog = (op: AttachmentOp): string =>
+    Object.entries(ATTACHMENTS)
+      .filter(([, def]) => def.ops.includes(op))
+      .map(([name, def]) => `${name} (parentId = ${def.parent})`)
+      .join("; ");
+
+  /** Resolve the attachment endpoint, checking the op and substituting {parentId}. */
+  const attachmentPath = (
+    resource: string,
+    organisationId: string,
+    parentId: string,
+    op: AttachmentOp,
+  ): string => {
+    const def = ATTACHMENTS[resource];
+    if (!def.ops.includes(op)) {
+      throw new Error(
+        `Attachments of '${resource}' do not support '${op}'. Supported operations: ${def.ops.join(", ")}.`,
+      );
+    }
+    const path = op === "add" && def.addPath !== undefined ? def.addPath : def.path;
+    return `/api/orgs/${organisationId}/${path.replace("{parentId}", encodeURIComponent(parentId))}`;
+  };
+
+  server.tool(
+    "minimax_list_attachments",
+    `List attachments of a record. Resources: ${attachmentCatalog("list")}`,
+    {
+      resource: attachmentResourceParam,
+      organisationId: z.string().describe("The organization ID"),
+      parentId: z.string().describe("ID of the record whose attachments to list"),
+    },
+    guard(async ({ resource, organisationId, parentId }) =>
+      ok(
+        `${String(resource)} attachments`,
+        await api.callApi(
+          "GET",
+          attachmentPath(resource as string, organisationId as string, parentId as string, "list"),
+        ),
+      ),
+    ),
+  );
+
+  server.tool(
+    "minimax_get_attachment",
+    `Get a single attachment of a record, including its base64 data. Resources: ${attachmentCatalog("get")}`,
+    {
+      resource: attachmentResourceParam,
+      organisationId: z.string().describe("The organization ID"),
+      parentId: z.string().describe("ID of the record the attachment belongs to"),
+      attachmentId: z.string().describe("The attachment ID"),
+    },
+    guard(async ({ resource, organisationId, parentId, attachmentId }) =>
+      ok(
+        `${String(resource)} attachment`,
+        await api.callApi(
+          "GET",
+          `${attachmentPath(resource as string, organisationId as string, parentId as string, "get")}/${encodeURIComponent(attachmentId as string)}`,
+        ),
+      ),
+    ),
+  );
+
+  server.tool(
+    "minimax_add_attachment",
+    `Upload a file as an attachment to a record. Resources: ${attachmentCatalog("add")}`,
+    {
+      resource: attachmentResourceParam,
+      organisationId: z.string().describe("The organization ID"),
+      parentId: z.string().describe("ID of the record to attach the file to"),
+      fileData: z.string().describe("Base64 encoded file data"),
+      fileName: z.string().describe("The file name"),
+      contentType: z
+        .string()
+        .optional()
+        .describe("MIME type of the file (default application/pdf)"),
+      description: z
+        .string()
+        .optional()
+        .describe("Attachment description (documents only)"),
+    },
+    guard(async ({ resource, organisationId, parentId, fileData, fileName, contentType, description }) => {
+      const def = ATTACHMENTS[resource as string];
+      const mime = (contentType as string) || "application/pdf";
+      const attachment = { AttachmentData: fileData, AttachmentFileName: fileName, AttachmentMimeType: mime };
+      const body =
+        def.body === "documentAttachment"
+          ? { AttachmentData: fileData, FileName: fileName, MimeType: mime, Description: description }
+          : def.body === "attachmentList"
+            ? [attachment]
+            : attachment;
+      return ok(
+        `${String(resource)} attachment added`,
+        await api.callApi(
+          "POST",
+          attachmentPath(resource as string, organisationId as string, parentId as string, "add"),
+          body,
+        ),
+      );
+    }),
+  );
+
+  server.tool(
+    "minimax_update_attachment",
+    `Update an attachment of a record. Fetch it with minimax_get_attachment first and send back the full object including its RowVersion. Resources: ${attachmentCatalog("update")}`,
+    {
+      resource: attachmentResourceParam,
+      organisationId: z.string().describe("The organization ID"),
+      parentId: z.string().describe("ID of the record the attachment belongs to"),
+      attachmentId: z.string().describe("The attachment ID"),
+      payload: z
+        .record(z.unknown())
+        .describe("The full updated attachment, including the current RowVersion"),
+    },
+    guard(async ({ resource, organisationId, parentId, attachmentId, payload }) =>
+      ok(
+        `${String(resource)} attachment updated`,
+        await api.callApi(
+          "PUT",
+          `${attachmentPath(resource as string, organisationId as string, parentId as string, "update")}/${encodeURIComponent(attachmentId as string)}`,
+          payload,
+        ),
+      ),
+    ),
+  );
+
+  server.tool(
+    "minimax_delete_attachment",
+    `Delete an attachment of a record. Resources: ${attachmentCatalog("delete")}`,
+    {
+      resource: attachmentResourceParam,
+      organisationId: z.string().describe("The organization ID"),
+      parentId: z.string().describe("ID of the record the attachment belongs to"),
+      attachmentId: z.string().describe("The attachment ID"),
+    },
+    guard(async ({ resource, organisationId, parentId, attachmentId }) =>
+      ok(
+        `${String(resource)} attachment deleted`,
+        await api.callApi(
+          "DELETE",
+          `${attachmentPath(resource as string, organisationId as string, parentId as string, "delete")}/${encodeURIComponent(attachmentId as string)}`,
         ),
       ),
     ),

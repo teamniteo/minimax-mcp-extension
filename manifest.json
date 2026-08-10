@@ -110,7 +110,12 @@
     { "name": "minimax_get", "description": "Get a single record of any Minimax resource by ID or code" },
     { "name": "minimax_create", "description": "Create a record of any writable Minimax resource" },
     { "name": "minimax_update", "description": "Update a record of any writable Minimax resource (requires current RowVersion)" },
-    { "name": "minimax_delete", "description": "Delete a record of any writable Minimax resource" }
+    { "name": "minimax_delete", "description": "Delete a record of any writable Minimax resource" },
+    { "name": "minimax_list_attachments", "description": "List attachments of an issued or received invoice" },
+    { "name": "minimax_get_attachment", "description": "Get a document attachment including its base64 data" },
+    { "name": "minimax_add_attachment", "description": "Upload a base64 file as an attachment to a document, inbox record or invoice" },
+    { "name": "minimax_update_attachment", "description": "Update a document attachment (requires current RowVersion)" },
+    { "name": "minimax_delete_attachment", "description": "Delete a document or inbox attachment" }
   ],
   "prompts": [
     {
