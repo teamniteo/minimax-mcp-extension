@@ -282,16 +282,19 @@ export function registerTools(server: McpServer, api: ApiClient): void {
       receivedInvoiceId: z.string().describe("The received invoice ID"),
       fileData: z.string().describe("Base64 encoded file data"),
       fileName: z.string().describe("The file name"),
-      contentType: z.string().optional().describe("MIME type of the file (optional)"),
+      contentType: z.string().optional().describe("MIME type of the file (default application/pdf)"),
     },
     guard(async ({ organisationId, receivedInvoiceId, fileData, fileName, contentType }) =>
       ok(
         "Received invoice attachment added",
-        await api.uploadFile(
+        await api.callApi(
+          "POST",
           `/api/orgs/${organisationId}/receivedinvoices/${receivedInvoiceId}/attachments`,
-          fileData as string,
-          fileName as string,
-          (contentType as string) || "application/octet-stream",
+          {
+            AttachmentData: fileData,
+            AttachmentFileName: fileName,
+            AttachmentMimeType: (contentType as string) || "application/pdf",
+          },
         ),
       ),
     ),
