@@ -29,6 +29,29 @@ Tools (read + attachment upload):
 | `perform_issued_invoice_action` | `PUT .../issuedinvoices/{id}/actions/{action}_{rowVersion}` |
 | `create_customer` | `POST /api/orgs/{id}/customers` |
 | `create_item` | `POST /api/orgs/{id}/items` |
+| `get_current_user_profile` | `GET /api/currentuser/profile` |
+
+Generic CRUD tools covering the full API surface (35 modules — accounts,
+addresses, analytics, bank accounts, contacts, countries, currencies,
+customers, dashboards, document numbering, documents, employees, exchange
+rates, inbox, invoice postings, invoices, items, journal types, journals,
+orders, outbox, payment methods, postal codes, product groups, purpose codes,
+report templates, stock, stock entries, VAT accounting types, VAT rates,
+warehouses):
+
+| Tool | Endpoint |
+|------|----------|
+| `minimax_list` | `GET /api/orgs/{id}/{resource}` |
+| `minimax_get` | `GET /api/orgs/{id}/{resource}/{recordId}` or `/code(CODE)` |
+| `minimax_create` | `POST /api/orgs/{id}/{resource}` |
+| `minimax_update` | `PUT /api/orgs/{id}/{resource}/{recordId}` |
+| `minimax_delete` | `DELETE /api/orgs/{id}/{resource}/{recordId}` |
+
+Each generic tool takes a `resource` name (e.g. `customers`, `orders`,
+`journals`); nested resources (customer `addresses`, `bankAccounts`,
+`contacts`, journal `journalVats`) also take a `parentId`. Updates require the
+record's current `RowVersion` — fetch it with `minimax_get` first. Resource
+registry and per-resource operations live in `src/crud.ts`.
 
 Prompts (guided workflows):
 

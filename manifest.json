@@ -2,9 +2,9 @@
   "manifest_version": "0.3",
   "name": "minimax-mcp-server",
   "display_name": "Minimax (SI) Accounting MCP",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Connect Claude to the Minimax Slovenian accounting API (moj.minimax.si) to read and create organizations' customers, items, and invoices, and issue invoices with PDF output.",
-  "long_description": "A Model Context Protocol server for the Minimax Slovenian accounting/ERP API (moj.minimax.si).\n\n**Read:**\n- List organizations and organization details\n- List customers and items\n- List issued and received invoices (filter by year/status/customer)\n- Look up VAT rates, currencies and countries\n- Fetch report templates and analytics\n- Read received-invoice attachments\n\n**Create & act:**\n- Create customers and items\n- Create issued invoices (draft or issued) and received (supplier) invoices\n- Issue an invoice and generate its PDF, plus other custom actions (credit note, cancellation, e-invoice)\n- Upload received-invoice attachments\n- New-resource IDs are returned directly from the Location header (no follow-up lookup needed)\n\n**Authentication:**\n- OAuth2 password grant against moj.minimax.si\n- Client credentials (Developer ID + password) plus organization credentials\n- Automatic token caching with refresh before expiry\n\nPackaged as a portable desktop extension that installs into Claude Desktop with two clicks and no manual JSON editing.",
+  "long_description": "A Model Context Protocol server for the Minimax Slovenian accounting/ERP API (moj.minimax.si).\n\n**Read:**\n- List organizations and organization details\n- List customers and items\n- List issued and received invoices (filter by year/status/customer)\n- Look up VAT rates, currencies and countries\n- Fetch report templates and analytics\n- Read received-invoice attachments\n\n**Create & act:**\n- Create customers and items\n- Create issued invoices (draft or issued) and received (supplier) invoices\n- Issue an invoice and generate its PDF, plus other custom actions (credit note, cancellation, e-invoice)\n- Upload received-invoice attachments\n- New-resource IDs are returned directly from the Location header (no follow-up lookup needed)\n\n**Full CRUD:**\n- Generic minimax_list/get/create/update/delete tools covering all 35 API modules (accounts, addresses, analytics, bank accounts, contacts, documents, employees, journals, orders, product groups, stock entries, warehouses, and more)\n\n**Authentication:**\n- OAuth2 password grant against moj.minimax.si\n- Client credentials (Developer ID + password) plus organization credentials\n- Automatic token caching with refresh before expiry\n\nPackaged as a portable desktop extension that installs into Claude Desktop with two clicks and no manual JSON editing.",
   "author": {
     "name": "dz0ny",
     "url": "https://github.com/dz0ny"
@@ -104,7 +104,13 @@
     { "name": "create_received_invoice", "description": "Create a new received (supplier) invoice" },
     { "name": "perform_issued_invoice_action", "description": "Issue an invoice and/or generate its PDF (and other custom actions)" },
     { "name": "create_customer", "description": "Create a new customer (buyer or supplier)" },
-    { "name": "create_item", "description": "Create a new item (product or service)" }
+    { "name": "create_item", "description": "Create a new item (product or service)" },
+    { "name": "get_current_user_profile", "description": "Get the profile of the current API user" },
+    { "name": "minimax_list", "description": "List records of any Minimax resource (customers, items, invoices, orders, journals, documents, employees, stock, ...)" },
+    { "name": "minimax_get", "description": "Get a single record of any Minimax resource by ID or code" },
+    { "name": "minimax_create", "description": "Create a record of any writable Minimax resource" },
+    { "name": "minimax_update", "description": "Update a record of any writable Minimax resource (requires current RowVersion)" },
+    { "name": "minimax_delete", "description": "Delete a record of any writable Minimax resource" }
   ],
   "prompts": [
     {

@@ -4,6 +4,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { loadConfig, TokenProvider } from "./config.js";
 import { ApiClient } from "./apiClient.js";
 import { registerTools } from "./tools.js";
+import { registerCrudTools } from "./crud.js";
 import { registerPrompts } from "./prompts.js";
 
 async function main(): Promise<void> {
@@ -19,11 +20,12 @@ async function main(): Promise<void> {
     {
       capabilities: { tools: {}, prompts: {} },
       instructions:
-        "This MCP server provides access to the Minimax Slovenian accounting API (moj.minimax.si). Use the provided tools and prompts to read organizations, customers, items, invoices and lookup data.",
+        "This MCP server provides access to the Minimax Slovenian accounting API (moj.minimax.si). Use the specialized tools for common invoicing workflows, and the generic minimax_list/get/create/update/delete tools for full CRUD access to all API resources (customers, items, invoices, orders, journals, documents, employees, stock, and more).",
     },
   );
 
   registerTools(server, api);
+  registerCrudTools(server, api);
   registerPrompts(server);
 
   const transport = new StdioServerTransport();
