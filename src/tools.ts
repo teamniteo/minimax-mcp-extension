@@ -116,15 +116,18 @@ export function registerTools(server: McpServer, api: ApiClient): void {
     `List all customers for an organization - API docs: ${DOCS}/GET-api-orgs-organisationId-customers`,
     {
       organisationId: z.string().describe("The organization ID"),
+      searchString: z.string().optional().describe("Search across predefined fields (optional)"),
       currentPage: z.number().optional().describe("Current page index starting with 1 (optional)"),
       pageSize: z.number().optional().describe("Number of records returned per page (optional)"),
+      sortField: z.string().optional().describe("Field name to sort by (optional)"),
+      order: z.enum(["A", "D"]).optional().describe("Sort order: A = ascending, D = descending (optional)"),
     },
-    guard(async ({ organisationId, currentPage, pageSize }) =>
+    guard(async ({ organisationId, searchString, currentPage, pageSize, sortField, order }) =>
       ok(
         "Customers",
         await api.callApi(
           "GET",
-          `/api/orgs/${organisationId}/customers${query({ CurrentPage: currentPage, PageSize: pageSize })}`,
+          `/api/orgs/${organisationId}/customers${query({ SearchString: searchString, CurrentPage: currentPage, PageSize: pageSize, SortField: sortField, Order: order })}`,
         ),
       ),
     ),
@@ -135,15 +138,18 @@ export function registerTools(server: McpServer, api: ApiClient): void {
     `List all items for an organization - API docs: ${DOCS}/GET-api-orgs-organisationId-items`,
     {
       organisationId: z.string().describe("The organization ID"),
+      searchString: z.string().optional().describe("Search across predefined fields (optional)"),
       currentPage: z.number().optional().describe("Current page index starting with 1 (optional)"),
       pageSize: z.number().optional().describe("Number of records returned per page (optional)"),
+      sortField: z.string().optional().describe("Field name to sort by (optional)"),
+      order: z.enum(["A", "D"]).optional().describe("Sort order: A = ascending, D = descending (optional)"),
     },
-    guard(async ({ organisationId, currentPage, pageSize }) =>
+    guard(async ({ organisationId, searchString, currentPage, pageSize, sortField, order }) =>
       ok(
         "Items",
         await api.callApi(
           "GET",
-          `/api/orgs/${organisationId}/items${query({ CurrentPage: currentPage, PageSize: pageSize })}`,
+          `/api/orgs/${organisationId}/items${query({ SearchString: searchString, CurrentPage: currentPage, PageSize: pageSize, SortField: sortField, Order: order })}`,
         ),
       ),
     ),
@@ -158,13 +164,15 @@ export function registerTools(server: McpServer, api: ApiClient): void {
       status: z.string().optional().describe("Filter invoices by status (e.g., Statuspayment) (optional)"),
       currentPage: z.number().optional().describe("Current page index starting with 1 (optional)"),
       pageSize: z.number().optional().describe("Number of records returned per page (optional)"),
+      sortField: z.string().optional().describe("Field name to sort by (optional)"),
+      order: z.enum(["A", "D"]).optional().describe("Sort order: A = ascending, D = descending (optional)"),
     },
-    guard(async ({ organisationId, year, status, currentPage, pageSize }) =>
+    guard(async ({ organisationId, year, status, currentPage, pageSize, sortField, order }) =>
       ok(
         "Issued invoices",
         await api.callApi(
           "GET",
-          `/api/orgs/${organisationId}/issuedinvoices${query({ year, status, CurrentPage: currentPage, PageSize: pageSize })}`,
+          `/api/orgs/${organisationId}/issuedinvoices${query({ year, status, CurrentPage: currentPage, PageSize: pageSize, SortField: sortField, Order: order })}`,
         ),
       ),
     ),
@@ -180,13 +188,15 @@ export function registerTools(server: McpServer, api: ApiClient): void {
       customer: z.string().optional().describe("Filter invoices by customer (optional)"),
       currentPage: z.number().optional().describe("Current page index starting with 1 (optional)"),
       pageSize: z.number().optional().describe("Number of records returned per page (optional)"),
+      sortField: z.string().optional().describe("Field name to sort by (optional)"),
+      order: z.enum(["A", "D"]).optional().describe("Sort order: A = ascending, D = descending (optional)"),
     },
-    guard(async ({ organisationId, year, statuses, customer, currentPage, pageSize }) =>
+    guard(async ({ organisationId, year, statuses, customer, currentPage, pageSize, sortField, order }) =>
       ok(
         "Received invoices",
         await api.callApi(
           "GET",
-          `/api/orgs/${organisationId}/receivedinvoices${query({ year, statuses, customer, CurrentPage: currentPage, PageSize: pageSize })}`,
+          `/api/orgs/${organisationId}/receivedinvoices${query({ year, statuses, customer, CurrentPage: currentPage, PageSize: pageSize, SortField: sortField, Order: order })}`,
         ),
       ),
     ),
@@ -247,15 +257,18 @@ export function registerTools(server: McpServer, api: ApiClient): void {
     `Get report templates for an organization - API docs: ${DOCS}/GET-api-orgs-organisationId-report-templates`,
     {
       organisationId: z.string().describe("The organization ID"),
-      searchString: z.string().optional().describe("Search string to filter templates (optional)"),
-      pageSize: z.number().optional().describe("Number of results per page (optional, default 100)"),
+      searchString: z.string().optional().describe("Search across predefined fields (optional)"),
+      currentPage: z.number().optional().describe("Current page index starting with 1 (optional)"),
+      pageSize: z.number().optional().describe("Number of records returned per page (optional)"),
+      sortField: z.string().optional().describe("Field name to sort by (optional)"),
+      order: z.enum(["A", "D"]).optional().describe("Sort order: A = ascending, D = descending (optional)"),
     },
-    guard(async ({ organisationId, searchString, pageSize }) =>
+    guard(async ({ organisationId, searchString, currentPage, pageSize, sortField, order }) =>
       ok(
         "Report templates",
         await api.callApi(
           "GET",
-          `/api/orgs/${organisationId}/report-templates${query({ SearchString: searchString, PageSize: pageSize ?? 100 })}`,
+          `/api/orgs/${organisationId}/report-templates${query({ SearchString: searchString, CurrentPage: currentPage, PageSize: pageSize ?? 100, SortField: sortField, Order: order })}`,
         ),
       ),
     ),
@@ -264,9 +277,22 @@ export function registerTools(server: McpServer, api: ApiClient): void {
   server.tool(
     "get_analytics",
     `Get analytics data for an organization - API docs: ${DOCS}/GET-api-orgs-organisationId-analytics`,
-    { organisationId: z.string().describe("The organization ID") },
-    guard(async ({ organisationId }) =>
-      ok("Analytics", await api.callApi("GET", `/api/orgs/${organisationId}/analytics`)),
+    {
+      organisationId: z.string().describe("The organization ID"),
+      searchString: z.string().optional().describe("Search across predefined fields (optional)"),
+      currentPage: z.number().optional().describe("Current page index starting with 1 (optional)"),
+      pageSize: z.number().optional().describe("Number of records returned per page (optional)"),
+      sortField: z.string().optional().describe("Field name to sort by (optional)"),
+      order: z.enum(["A", "D"]).optional().describe("Sort order: A = ascending, D = descending (optional)"),
+    },
+    guard(async ({ organisationId, searchString, currentPage, pageSize, sortField, order }) =>
+      ok(
+        "Analytics",
+        await api.callApi(
+          "GET",
+          `/api/orgs/${organisationId}/analytics${query({ SearchString: searchString, CurrentPage: currentPage, PageSize: pageSize, SortField: sortField, Order: order })}`,
+        ),
+      ),
     ),
   );
 
