@@ -51,7 +51,7 @@ const RESOURCES: Record<string, ResourceDef> = {
     parent: "customer ID",
     listPath: "contacts",
     description:
-      "Customer contacts (list without parentId returns all organisation contacts)",
+      "Customer contacts (list without parentId returns all organisation contacts; filters: Email)",
   },
   countries: {
     path: "countries",
@@ -101,12 +101,14 @@ const RESOURCES: Record<string, ResourceDef> = {
   inbox: {
     path: "inbox",
     ops: ["list", "get"],
-    description: "Inbox (received e-documents)",
+    description:
+      "Inbox / received e-documents (filters: InboxType, InboxImportStatus, InboxDateFrom/To)",
   },
   issuedInvoicePostings: {
     path: "issuedinvoicepostings",
     ops: ["list", "get", "create"],
-    description: "Issued invoice postings (register/POS invoices)",
+    description:
+      "Issued invoice postings / register POS invoices (filters: DateFrom/To, Status, AnalyticID)",
   },
   issuedInvoices: {
     path: "issuedinvoices",
@@ -135,17 +137,20 @@ const RESOURCES: Record<string, ResourceDef> = {
   journals: {
     path: "journals",
     ops: ["list", "get", "create", "update"],
-    description: "Accounting journals (temeljnice)",
+    description:
+      "Accounting journals / temeljnice (filters: DateFrom/To, JournalId, JournalType, Status)",
   },
   orders: {
     path: "orders",
     ops: ["list", "get", "create", "update"],
-    description: "Orders",
+    description:
+      "Orders (filters: CustomerID, DateFrom/To, DateConfirmedFrom/To, DateCompletedFrom/To, ReceivedIssued, Year, Number, AnalyticsID, Reference, Status)",
   },
   outbox: {
     path: "outbox",
     ops: ["list", "get"],
-    description: "Outbox (sent e-documents, read-only)",
+    description:
+      "Outbox / sent e-documents, read-only (filters: OutboxType, OutboxImportStatus, OutboxDateFrom/To)",
   },
   paymentMethods: {
     path: "paymentMethods",
@@ -184,12 +189,14 @@ const RESOURCES: Record<string, ResourceDef> = {
   stockEntries: {
     path: "stockentry",
     ops: ["list", "get", "create", "update"],
-    description: "Stock entries (inventory receipts and issues)",
+    description:
+      "Stock entries / inventory receipts and issues (filters: StockEntryType, StockEntrySubtype, Status, AnalyticId, DateFrom/To)",
   },
   stocks: {
     path: "stocks",
     ops: ["list", "get"],
-    description: "Stock levels (read-only; get by item ID)",
+    description:
+      "Stock levels, read-only; get by item ID (filters: ItemID, ItemTitle, ItemIdentifier, ItemEANCode, ItemType, WarehouseId, BatchNumber, Date, ResultsByBatchNumber)",
   },
   vatAccountingTypes: {
     path: "vataccountingtypes",

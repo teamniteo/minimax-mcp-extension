@@ -162,20 +162,54 @@ export function registerTools(server: McpServer, api: ApiClient): void {
       organisationId: z.string().describe("The organization ID"),
       year: z.number().optional().describe("Filter invoices by year (optional)"),
       status: z.string().optional().describe("Filter invoices by status (e.g., Statuspayment) (optional)"),
+      customerId: z.number().optional().describe("Filter by customer ID (optional)"),
+      customerName: z.string().optional().describe("Filter by customer name (optional)"),
+      analyticsId: z.number().optional().describe("Filter by analytic (cost centre) ID (optional)"),
+      currencyId: z.number().optional().describe("Filter by currency ID (optional)"),
+      invoiceType: z.string().optional().describe("Filter by invoice type: R = invoice, P = proforma (optional)"),
+      invoiceNumber: z.number().optional().describe("Filter by invoice number (optional)"),
+      paymentStatus: z.string().optional().describe("Filter by payment status, e.g. Placan, Neplacan, NeplacanZapadel, DelnoPlacan (optional)"),
+      dateIssuedFrom: z.string().optional().describe("Issued on or after this date, YYYY-MM-DD (optional)"),
+      dateIssuedTo: z.string().optional().describe("Issued on or before this date, YYYY-MM-DD (optional)"),
+      dateDueFrom: z.string().optional().describe("Due on or after this date, YYYY-MM-DD (optional)"),
+      dateDueTo: z.string().optional().describe("Due on or before this date, YYYY-MM-DD (optional)"),
+      dateTransactionFrom: z.string().optional().describe("Transaction date from, YYYY-MM-DD (optional)"),
+      dateTransactionTo: z.string().optional().describe("Transaction date to, YYYY-MM-DD (optional)"),
       currentPage: z.number().optional().describe("Current page index starting with 1 (optional)"),
       pageSize: z.number().optional().describe("Number of records returned per page (optional)"),
       sortField: z.string().optional().describe("Field name to sort by (optional)"),
       order: z.enum(["A", "D"]).optional().describe("Sort order: A = ascending, D = descending (optional)"),
     },
-    guard(async ({ organisationId, year, status, currentPage, pageSize, sortField, order }) =>
-      ok(
+    guard(async (args) => {
+      const { organisationId } = args;
+      return ok(
         "Issued invoices",
         await api.callApi(
           "GET",
-          `/api/orgs/${organisationId}/issuedinvoices${query({ year, status, CurrentPage: currentPage, PageSize: pageSize, SortField: sortField, Order: order })}`,
+          `/api/orgs/${organisationId}/issuedinvoices${query({
+            year: args.year,
+            status: args.status,
+            CustomerID: args.customerId,
+            CustomerName: args.customerName,
+            AnalyticsID: args.analyticsId,
+            CurrencyId: args.currencyId,
+            InvoiceType: args.invoiceType,
+            InvoiceNumber: args.invoiceNumber,
+            PaymentStatus: args.paymentStatus,
+            DateIssuedFrom: args.dateIssuedFrom,
+            DateIssuedTo: args.dateIssuedTo,
+            DateDueFrom: args.dateDueFrom,
+            DateDueTo: args.dateDueTo,
+            DateTransactionFrom: args.dateTransactionFrom,
+            DateTransactionTo: args.dateTransactionTo,
+            CurrentPage: args.currentPage,
+            PageSize: args.pageSize,
+            SortField: args.sortField,
+            Order: args.order,
+          })}`,
         ),
-      ),
-    ),
+      );
+    }),
   );
 
   server.tool(
@@ -186,20 +220,51 @@ export function registerTools(server: McpServer, api: ApiClient): void {
       year: z.number().optional().describe("Filter invoices by year (optional)"),
       statuses: z.string().optional().describe("Filter invoices by statuses (optional)"),
       customer: z.string().optional().describe("Filter invoices by customer (optional)"),
+      customerId: z.number().optional().describe("Filter by customer (supplier) ID (optional)"),
+      customerName: z.string().optional().describe("Filter by customer (supplier) name (optional)"),
+      invoiceNumber: z.number().optional().describe("Filter by invoice number (optional)"),
+      documentReference: z.string().optional().describe("Filter by supplier document reference (optional)"),
+      paymentStatus: z.string().optional().describe("Filter by payment status, e.g. Placan, Neplacan (optional)"),
+      dateIssuedFrom: z.string().optional().describe("Issued on or after this date, YYYY-MM-DD (optional)"),
+      dateIssuedTo: z.string().optional().describe("Issued on or before this date, YYYY-MM-DD (optional)"),
+      dateDueFrom: z.string().optional().describe("Due on or after this date, YYYY-MM-DD (optional)"),
+      dateDueTo: z.string().optional().describe("Due on or before this date, YYYY-MM-DD (optional)"),
+      dateTransactionFrom: z.string().optional().describe("Transaction date from, YYYY-MM-DD (optional)"),
+      dateTransactionTo: z.string().optional().describe("Transaction date to, YYYY-MM-DD (optional)"),
       currentPage: z.number().optional().describe("Current page index starting with 1 (optional)"),
       pageSize: z.number().optional().describe("Number of records returned per page (optional)"),
       sortField: z.string().optional().describe("Field name to sort by (optional)"),
       order: z.enum(["A", "D"]).optional().describe("Sort order: A = ascending, D = descending (optional)"),
     },
-    guard(async ({ organisationId, year, statuses, customer, currentPage, pageSize, sortField, order }) =>
-      ok(
+    guard(async (args) => {
+      const { organisationId } = args;
+      return ok(
         "Received invoices",
         await api.callApi(
           "GET",
-          `/api/orgs/${organisationId}/receivedinvoices${query({ year, statuses, customer, CurrentPage: currentPage, PageSize: pageSize, SortField: sortField, Order: order })}`,
+          `/api/orgs/${organisationId}/receivedinvoices${query({
+            year: args.year,
+            statuses: args.statuses,
+            customer: args.customer,
+            CustomerID: args.customerId,
+            CustomerName: args.customerName,
+            InvoiceNumber: args.invoiceNumber,
+            DocumentReference: args.documentReference,
+            PaymentStatus: args.paymentStatus,
+            DateIssuedFrom: args.dateIssuedFrom,
+            DateIssuedTo: args.dateIssuedTo,
+            DateDueFrom: args.dateDueFrom,
+            DateDueTo: args.dateDueTo,
+            DateTransactionFrom: args.dateTransactionFrom,
+            DateTransactionTo: args.dateTransactionTo,
+            CurrentPage: args.currentPage,
+            PageSize: args.pageSize,
+            SortField: args.sortField,
+            Order: args.order,
+          })}`,
         ),
-      ),
-    ),
+      );
+    }),
   );
 
   server.tool(
