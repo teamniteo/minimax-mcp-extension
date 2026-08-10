@@ -20,7 +20,7 @@ async function main(): Promise<void> {
     {
       capabilities: { tools: {}, prompts: {} },
       instructions:
-        "This MCP server provides access to the Minimax Slovenian accounting API (moj.minimax.si). Use the specialized tools for common invoicing workflows, and the generic minimax_list/get/create/update/delete tools for full CRUD access to all API resources (customers, items, invoices, orders, journals, documents, employees, stock, and more).",
+        "This MCP server provides access to the Minimax Slovenian accounting API (moj.minimax.si). Use the specialized tools for common invoicing workflows, and the generic minimax_list/get/create/update tools for full read/write access to all API resources (customers, items, invoices, orders, journals, documents, employees, stock, and more).",
     },
   );
 

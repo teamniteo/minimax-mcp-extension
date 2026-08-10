@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ApiClient, ApiResponse } from "./apiClient.js";
 
-type Op = "list" | "get" | "create" | "update" | "delete";
+type Op = "list" | "get" | "create" | "update";
 
 interface ResourceDef {
   /** Path under /api/orgs/{organisationId}/. May contain a {parentId} segment. */
@@ -30,24 +30,24 @@ const RESOURCES: Record<string, ResourceDef> = {
   },
   addresses: {
     path: "customers/{parentId}/addresses",
-    ops: ["list", "get", "create", "update", "delete"],
+    ops: ["list", "get", "create", "update"],
     parent: "customer ID",
     description: "Customer addresses",
   },
   analytics: {
     path: "analytics",
-    ops: ["list", "get", "create", "update", "delete"],
+    ops: ["list", "get", "create", "update"],
     description: "Analytics (cost centres)",
   },
   bankAccounts: {
     path: "customers/{parentId}/bankAccounts",
-    ops: ["list", "get", "create", "update", "delete"],
+    ops: ["list", "get", "create", "update"],
     parent: "customer ID",
     description: "Customer bank accounts",
   },
   contacts: {
     path: "customers/{parentId}/contacts",
-    ops: ["list", "get", "create", "update", "delete"],
+    ops: ["list", "get", "create", "update"],
     parent: "customer ID",
     listPath: "contacts",
     description:
@@ -67,7 +67,7 @@ const RESOURCES: Record<string, ResourceDef> = {
   },
   customers: {
     path: "customers",
-    ops: ["list", "get", "create", "update", "delete"],
+    ops: ["list", "get", "create", "update"],
     codeLookup: true,
     description: "Customers and suppliers",
   },
@@ -83,12 +83,12 @@ const RESOURCES: Record<string, ResourceDef> = {
   },
   documents: {
     path: "documents",
-    ops: ["list", "get", "create", "update", "delete"],
+    ops: ["list", "get", "create", "update"],
     description: "Documents",
   },
   employees: {
     path: "employees",
-    ops: ["list", "get", "create", "update", "delete"],
+    ops: ["list", "get", "create", "update"],
     description: "Employees",
   },
   exchangeRates: {
@@ -100,23 +100,23 @@ const RESOURCES: Record<string, ResourceDef> = {
   },
   inbox: {
     path: "inbox",
-    ops: ["list", "get", "delete"],
+    ops: ["list", "get"],
     description: "Inbox (received e-documents)",
   },
   issuedInvoicePostings: {
     path: "issuedinvoicepostings",
-    ops: ["list", "get", "create", "delete"],
+    ops: ["list", "get", "create"],
     description: "Issued invoice postings (register/POS invoices)",
   },
   issuedInvoices: {
     path: "issuedinvoices",
-    ops: ["list", "get", "create", "update", "delete"],
+    ops: ["list", "get", "create", "update"],
     description:
       "Issued invoices (prefer create_issued_invoice for creating; use perform_issued_invoice_action for issue/PDF actions)",
   },
   items: {
     path: "items",
-    ops: ["list", "get", "create", "update", "delete"],
+    ops: ["list", "get", "create", "update"],
     codeLookup: true,
     description: "Items (prefer create_item for creating)",
   },
@@ -128,18 +128,18 @@ const RESOURCES: Record<string, ResourceDef> = {
   },
   journalVats: {
     path: "journals/{parentId}/vat",
-    ops: ["get", "create", "update", "delete"],
+    ops: ["get", "create", "update"],
     parent: "journal ID",
     description: "VAT entries of a journal",
   },
   journals: {
     path: "journals",
-    ops: ["list", "get", "create", "update", "delete"],
+    ops: ["list", "get", "create", "update"],
     description: "Accounting journals (temeljnice)",
   },
   orders: {
     path: "orders",
-    ops: ["list", "get", "create", "update", "delete"],
+    ops: ["list", "get", "create", "update"],
     description: "Orders",
   },
   outbox: {
@@ -161,7 +161,7 @@ const RESOURCES: Record<string, ResourceDef> = {
   },
   productGroups: {
     path: "productGroups",
-    ops: ["list", "get", "create", "update", "delete"],
+    ops: ["list", "get", "create", "update"],
     description: "Product groups",
   },
   purposeCodes: {
@@ -172,7 +172,7 @@ const RESOURCES: Record<string, ResourceDef> = {
   },
   receivedInvoices: {
     path: "receivedinvoices",
-    ops: ["list", "get", "create", "update", "delete"],
+    ops: ["list", "get", "create", "update"],
     description:
       "Received (supplier) invoices (prefer create_received_invoice for creating)",
   },
@@ -183,7 +183,7 @@ const RESOURCES: Record<string, ResourceDef> = {
   },
   stockEntries: {
     path: "stockentry",
-    ops: ["list", "get", "create", "update", "delete"],
+    ops: ["list", "get", "create", "update"],
     description: "Stock entries (inventory receipts and issues)",
   },
   stocks: {
@@ -204,12 +204,12 @@ const RESOURCES: Record<string, ResourceDef> = {
   },
   warehouses: {
     path: "warehouses",
-    ops: ["list", "get", "create", "update", "delete"],
+    ops: ["list", "get", "create", "update"],
     description: "Warehouses",
   },
 };
 
-type AttachmentOp = "list" | "get" | "add" | "update" | "delete";
+type AttachmentOp = "list" | "get" | "add" | "update";
 
 interface AttachmentDef {
   /** Attachment collection path under /api/orgs/{organisationId}/. */
@@ -233,14 +233,14 @@ const ATTACHMENTS: Record<string, AttachmentDef> = {
   documents: {
     path: "documents/{parentId}/attachments",
     parent: "document ID",
-    ops: ["get", "add", "update", "delete"],
+    ops: ["get", "add", "update"],
     body: "documentAttachment",
   },
   inbox: {
     path: "inbox/{parentId}/attachments",
     addPath: "inbox/{parentId}",
     parent: "inbox record ID",
-    ops: ["add", "delete"],
+    ops: ["add"],
     body: "attachmentList",
   },
   issuedInvoices: {
@@ -540,34 +540,6 @@ export function registerCrudTools(server: McpServer, api: ApiClient): void {
     ),
   );
 
-  server.tool(
-    "minimax_delete",
-    `Delete a Minimax record. Resources: ${resourceCatalog("delete")}`,
-    {
-      resource: resourceParam,
-      organisationId: z.string().describe("The organization ID"),
-      id: z.string().describe("Record ID"),
-      parentId: z
-        .string()
-        .optional()
-        .describe("Parent record ID for nested resources (see resource list)"),
-    },
-    guard(async ({ resource, organisationId, id, parentId }) =>
-      ok(
-        `${String(resource)} deleted`,
-        await api.callApi(
-          "DELETE",
-          `${collectionPath(
-            resource as string,
-            organisationId as string,
-            parentId as string | undefined,
-            "delete",
-          )}/${encodeURIComponent(id as string)}`,
-        ),
-      ),
-    ),
-  );
-
   const attachmentNames = Object.keys(ATTACHMENTS) as [string, ...string[]];
 
   const attachmentResourceParam = z
@@ -694,26 +666,6 @@ export function registerCrudTools(server: McpServer, api: ApiClient): void {
           "PUT",
           `${attachmentPath(resource as string, organisationId as string, parentId as string, "update")}/${encodeURIComponent(attachmentId as string)}`,
           payload,
-        ),
-      ),
-    ),
-  );
-
-  server.tool(
-    "minimax_delete_attachment",
-    `Delete an attachment of a record. Resources: ${attachmentCatalog("delete")}`,
-    {
-      resource: attachmentResourceParam,
-      organisationId: z.string().describe("The organization ID"),
-      parentId: z.string().describe("ID of the record the attachment belongs to"),
-      attachmentId: z.string().describe("The attachment ID"),
-    },
-    guard(async ({ resource, organisationId, parentId, attachmentId }) =>
-      ok(
-        `${String(resource)} attachment deleted`,
-        await api.callApi(
-          "DELETE",
-          `${attachmentPath(resource as string, organisationId as string, parentId as string, "delete")}/${encodeURIComponent(attachmentId as string)}`,
         ),
       ),
     ),
