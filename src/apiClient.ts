@@ -1,4 +1,3 @@
-import { Buffer } from "node:buffer";
 import type { MinimaxConfig, TokenProvider } from "./config.js";
 
 export interface ApiResponse {
@@ -11,9 +10,8 @@ export interface ApiResponse {
 }
 
 /**
- * Thin HTTP client for the Minimax API. Mirrors api_client.go: a JSON GET/POST
- * helper plus a multipart file uploader, both attaching a bearer token that is
- * refreshed on demand.
+ * Thin HTTP client for the Minimax API: a JSON request helper attaching a
+ * bearer token that is refreshed on demand.
  */
 export class ApiClient {
   constructor(
@@ -65,27 +63,6 @@ export class ApiClient {
       method,
       headers,
       body: payload,
-    });
-    return this.parse(resp);
-  }
-
-  /** Upload a base64-encoded file as multipart/form-data. */
-  async uploadFile(
-    endpoint: string,
-    fileDataBase64: string,
-    fileName: string,
-    contentType = "application/octet-stream",
-  ): Promise<ApiResponse> {
-    const token = await this.tokens.getToken();
-    const bytes = Buffer.from(fileDataBase64, "base64");
-    const form = new FormData();
-    const blob = new Blob([bytes], { type: contentType });
-    form.append("file", blob, fileName);
-
-    const resp = await fetch(this.buildUrl(endpoint), {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: form,
     });
     return this.parse(resp);
   }
