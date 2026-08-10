@@ -83,9 +83,23 @@ export function registerTools(server: McpServer, api: ApiClient): void {
 
   server.tool(
     "list_organizations",
-    `List all organizations - API docs: ${DOCS}/GET-api-currentuser-orgs`,
-    {},
-    guard(async () => ok("Organizations", await api.callApi("GET", "/api/currentuser/orgs"))),
+    `List all organizations for the current user (paged) - API docs: ${DOCS}/GET-api-currentuser-orgs`,
+    {
+      searchString: z.string().optional().describe("Search across predefined fields (optional)"),
+      currentPage: z.number().optional().describe("Current page index starting with 1 (optional)"),
+      pageSize: z.number().optional().describe("Number of records returned per page (optional)"),
+      sortField: z.string().optional().describe("Field name to sort by (optional)"),
+      order: z.enum(["A", "D"]).optional().describe("Sort order: A = ascending, D = descending (optional)"),
+    },
+    guard(async ({ searchString, currentPage, pageSize, sortField, order }) =>
+      ok(
+        "Organizations",
+        await api.callApi(
+          "GET",
+          `/api/currentuser/orgs${query({ SearchString: searchString, CurrentPage: currentPage, PageSize: pageSize, SortField: sortField, Order: order })}`,
+        ),
+      ),
+    ),
   );
 
   server.tool(
