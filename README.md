@@ -116,15 +116,51 @@ pass-through), so you are not limited to the fields listed above.
 1. Download `minimax-mcp-server.mcpb`.
 2. In Claude Desktop: **Settings → Extensions → Install Extension** and pick the
    `.mcpb` file (or double-click it).
-3. Enter your Minimax credentials in the extension settings:
-   - **Developer ID** / **Developer Password** — your app (client) credentials
-   - **Organization Username** / **Organization Password** — the API login you
-     defined in your Minimax user account
+3. Enter your Minimax credentials in the extension settings (see
+   [Configuration](#configuration) for where to get them).
 4. The base URL, token URL and scope have sensible defaults; change only if you
    use a different Minimax region.
 
 Credentials are stored by Claude Desktop and passed to the server as environment
 variables. Nothing is hardcoded in the bundle.
+
+## Configuration
+
+The extension needs two pairs of credentials.
+
+### Developer ID / Developer Password (OAuth2 client)
+
+These are the client credentials (`client_id` / `client_secret`) of your API
+integration. Minimax does not issue them self-service: you have to ask Minimax
+support for them.
+
+1. Register and log in at [moj.minimax.si](https://moj.minimax.si).
+2. Click the **Pomoč** (Help) icon → **Oddajte zahtevo po pomoči** (submit a
+   support request).
+3. Pick your organisation and ask for API client credentials ("podatki za
+   odjemalca"), e.g. *"Prosim za ID in geslo odjemalca za dostop do Minimax
+   API (lastna integracija)."* Tick **Želim prejeti odgovor
+   na elektronsko pošto** to also get the reply by email.
+4. Support replies with a client ID and client password — enter them as
+   **Developer ID** and **Developer Password**.
+
+See Minimax's [API developer guide](https://help.minimax.si/help/api-navodila-za-razvijalce)
+and [how to submit a support request](https://help.minimax.si/help/kako-oddamo-zahtevo-po-pomoci).
+
+### Organization Username / Organization Password (API user)
+
+These you create yourself, no support request needed:
+
+1. Log in to Minimax and open your **user account** (Uporabniški račun).
+2. At the bottom, under **Gesla za dostop zunanjih aplikacij**, click
+   **Nova aplikacija**.
+3. Enter an application name and choose a new username and password — use
+   these as **Organization Username** and **Organization Password**.
+
+> Repeated logins with a wrong password lock the application; you then have to
+> delete it and create a new one.
+
+For local development, put the same values in `.env` (see `.env.example`).
 
 ## Authentication
 
